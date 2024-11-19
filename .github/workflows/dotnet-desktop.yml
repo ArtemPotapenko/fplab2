@@ -1,0 +1,41 @@
+name: .NET Core Desktop
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+
+  build:
+
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
+
+    runs-on: windows-latest  # For a list of available runner types, refer to
+                             # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '7.0.x'  # Замените на вашу версию SDK
+
+      - name: Install Fantomas (Code Formatter)
+        run: dotnet tool install --create-manifest-if-needed -g Fantomas
+
+      - name: Format code with Fantomas (HashSet)
+        run: fantomas flab2/src/Program.fs
+
+      - name: Format code with Fantomas (Test)
+        run: fantomas flab2/test/Program.fs
+        
+      - name: Run test (HashSet)
+        run: cd fplab && dotnet test
+
+    
