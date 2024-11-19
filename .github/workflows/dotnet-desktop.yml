@@ -27,7 +27,7 @@ jobs:
           dotnet-version: '7.0.x'  # Замените на вашу версию SDK
 
       - name: Install Fantomas (Code Formatter)
-        run: dotnet tool install --create-manifest-if-needed Fantomas
+        run: dotnet tool install -g --create-manifest-if-needed Fantomas
 
       - name: Format code with Fantomas (HashSet)
         run: fantomas fplab2/src/Program.fs
