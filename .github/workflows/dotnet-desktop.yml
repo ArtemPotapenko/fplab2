@@ -30,10 +30,10 @@ jobs:
         run: dotnet tool install --create-manifest-if-needed -g Fantomas
 
       - name: Format code with Fantomas (HashSet)
-        run: fantomas flab2/src/Program.fs
+        run: fantomas fplab2/src/Program.fs
 
       - name: Format code with Fantomas (Test)
-        run: fantomas flab2/test/Program.fs
+        run: fantomas fplab2/test/Program.fs
         
       - name: Run test (HashSet)
         run: cd fplab && dotnet test
