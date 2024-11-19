@@ -121,7 +121,10 @@ module HashSet =
             let nextAcc x = (mut_acc <- f mut_acc x)
             set.IterRev(nextAcc)
             mut_acc
-
+        static member create (arr : list<'T>) =
+            let set = HashSet<'T>(arr.Length)
+            arr |> List.iter (fun x -> set.Add(x))
+            set
     let (@) (set1: HashSet<'T>) (set2: HashSet<'T>) =
         let set3 = HashSet<'T>(set1.Capacity + set2.Capacity)
         set1.Iter(fun (x) -> set3.Add(x))
