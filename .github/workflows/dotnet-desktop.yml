@@ -24,10 +24,10 @@ jobs:
       - name: Set up .NET SDK
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '7.0.x'  # Замените на вашу версию SDK
+          dotnet-version: '8.0.x'  # Замените на вашу версию SDK
 
       - name: Install Fantomas (Code Formatter)
-        run: dotnet tool install --create-manifest-if-needed --global Fantomas --version 6.3.16
+        run: dotnet tool install --create-manifest-if-needed -g Fantomas
 
       - name: Format code with Fantomas (HashSet)
         run: fantomas fplab2/src/HashSet.fs
