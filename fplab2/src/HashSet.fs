@@ -125,6 +125,13 @@ module HashSet =
             let set = HashSet<'T>(arr.Length)
             arr |> List.iter (fun x -> set.Add(x))
             set
+
+        member this.Equals(obj : HashSet<'a>) =
+           let mutable check = true
+           obj |> HashSet.iter (fun x -> if not(this.Contains(x)) then check <- false)
+           this |> HashSet.iter (fun x -> if not(obj.Contains(x)) then check <- false)
+           check
+           
     let (@) (set1: HashSet<'T>) (set2: HashSet<'T>) =
         let set3 = HashSet<'T>(set1.Capacity + set2.Capacity)
         set1.Iter(fun (x) -> set3.Add(x))
