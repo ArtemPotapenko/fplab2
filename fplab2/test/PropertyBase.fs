@@ -13,7 +13,7 @@ let genSet (genValue: Gen<'Value>) : Gen<HashSet<'Value>> =
         return set
     }
 
-let arbHashSet<'Value when 'Value : comparison> () : Arbitrary<HashSet<'Value>> =
+let arbHashSet<'Value when 'Value : equality> () : Arbitrary<HashSet<'Value>> =
     Arb.fromGen (genSet Arb.generate) 
 
 type HashSetGenerators =
