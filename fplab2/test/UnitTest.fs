@@ -1,7 +1,5 @@
 ﻿module fplab2.test.UnitTest
 
-open System.Collections.Generic
-open System.Linq
 open NUnit.Framework
 open fplab2.HashSet
 

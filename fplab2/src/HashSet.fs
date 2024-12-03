@@ -1,5 +1,6 @@
 ﻿namespace fplab2
 
+
 module HashSet =
 
     type HashSet<'T when 'T: equality>(capacity: int) =
@@ -126,7 +127,7 @@ module HashSet =
             arr |> List.iter (fun x -> set.Add(x))
             set
 
-        member this.Equals(obj : HashSet<'a>) =
+        member this.Equals(obj : HashSet<'T>) =
            let mutable check = true
            obj |> HashSet.iter (fun x -> if not(this.Contains(x)) then check <- false)
            this |> HashSet.iter (fun x -> if not(obj.Contains(x)) then check <- false)
@@ -137,3 +138,5 @@ module HashSet =
         set1.Iter(fun (x) -> set3.Add(x))
         set2.Iter(fun (x) -> set3.Add(x))
         set3
+        
+    
