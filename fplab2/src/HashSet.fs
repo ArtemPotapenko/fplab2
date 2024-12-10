@@ -1,142 +1,135 @@
 ﻿namespace fplab2
 
+open Microsoft.FSharp.Core
 
 module HashSet =
 
-    type HashSet<'T when 'T: equality>(capacity: int) =
+    type HashSet<'T when 'T: equality>(table: 'T option array, size: int) =
+        member val table = table
+        member val size = size
+        member val loadFactor = 0.75
+        member val capacity = table.Length
 
-        let mutable table = Array.init capacity (fun _ -> None: option<'T>)
-        let mutable size = 0
-        let loadFactor = 0.75
+        new(capacity: int) =
+            let table = Array.init capacity (fun _ -> None: 'T option)
+            HashSet(table, 0)
 
-        let hashIndex x len = (hash x % len + len) % len
+    let hashIndex x len = (hash x % len + len) % len
+    let default_set<'T when 'T: equality> () = HashSet<'T>(16)
+
+    let resize (set: HashSet<'T>) =
+        let newCapacity = set.capacity * 2
+        let table = Array.init newCapacity (fun _ -> None: 'T option)
+
+        let rec tryInsert index item =
+            match table[index] with
+            | Some x when x = item -> () // Already present, do nothing
+            | None -> table[index] <- Some item
+            | _ -> tryInsert ((index + 1) % newCapacity) item
+
+        set.table
+        |> Array.map Option.get
+        |> Array.iter (fun x -> tryInsert (hashIndex x set.capacity) x)
+
+        HashSet(table, set.size)
+
+    let add (x: 'T) (hash_set: HashSet<'T>) =
+        let rec tryInsert index item (set: HashSet<'T>) : HashSet<'T> =
+            match set.table[index] with
+            | Some x when x = item -> set // Already present, do nothing
+            | None ->
+                set.table[index] <- Some item
+                HashSet(set.table, set.size + 1)
+            | _ -> tryInsert ((index + 1) % set.capacity) item set
+
+        match float hash_set.size / float hash_set.capacity with
+        | l when l >= hash_set.loadFactor ->
+            let hash_set1 = hash_set |> resize
+            let index = hashIndex x hash_set1.capacity
+            let hash_set2 = tryInsert index x hash_set1
+            hash_set2
+        | _ ->
+            let index = hashIndex x hash_set.capacity
+            let hash_set1 = tryInsert index x hash_set
+            hash_set1
+
+    let contains (item: 'T) (set: HashSet<'T>) =
+        let rec tryFind index =
+            match set.table.[index] with
+            | Some x when x = item -> true
+            | None -> false
+            | _ -> tryFind ((index + 1) % set.capacity)
+
+        let index = hashIndex item set.capacity
+        tryFind index
+
+    let remove (item: 'T) (set: HashSet<'T>) =
+        let rec tryRemove index =
+            match set.table.[index] with
+            | Some x when x = item ->
+                set.table.[index] <- None
+                HashSet(set.table, set.size - 1)
+            | Some _ -> tryRemove ((index + 1) % set.capacity)
+            | None -> set
+
+        let index = hashIndex item set.capacity
+        tryRemove index
+
+    let iter (f: 'T -> unit) (set: HashSet<'T>) =
+        set.table
+        |> Array.iter (fun x ->
+            match x with
+            | None -> ()
+            | _ -> f x.Value)
+
+    let map (f: 'T -> 'M) (set: HashSet<'T>) =
+        let table = Array.init set.capacity (fun _ -> None: 'M option)
+
+        let rec tryInsert index item =
+            match table[index] with
+            | Some x when x = item -> () // Already present, do nothing
+            | None -> table[index] <- Some item
+            | _ -> tryInsert ((index + 1) % set.capacity) item
+
+        set.table |> Array.filter Option.isSome
+        |> Array.iter (fun x -> tryInsert (hashIndex (f x.Value) set.capacity) (f x.Value))
+
+        let newSize = table |> Array.filter Option.isSome |> Array.length
+
+        HashSet(table, newSize)
+
+    let foldl (f: 'M -> 'T -> 'M) (acc: 'M) (set: HashSet<'T>) =
+        set.table |> Array.filter Option.isSome |> Array.map _.Value |> Array.fold f acc
+
+    let foldr (f: 'M -> 'T -> 'M) (acc: 'M) (set: HashSet<'T>) =
+        set.table
+        |> Array.rev
+        |> Array.filter Option.isSome
+        |> Array.map _.Value
+        |> Array.fold f acc
 
 
-        let resize () =
-            let newCapacity = table.Length * 2
-            let newTable = Array.init newCapacity (fun _ -> None: 'T option)
 
-            let rec tryInsert index item =
-                match table.[index] with
-                | Some x when x = item -> () // Already present, do nothing
-                | None ->
-                    newTable.[index] <- Some item
-                    size <- size + 1
-                | _ -> tryInsert ((index + 1) % size) item
+    let equal (set1: HashSet<'T>) (set2: HashSet<'T>) =
+        set1 |> map (set2 |> contains) |> foldl (&&) true
+        && set2 |> map (set1 |> contains) |> foldl (&&) true
 
-            for i = 0 to table.Length - 1 do
-                match table.[i] with
-                | Some value -> tryInsert i value
-                | None -> ()
-
-            table <- newTable
-
-        static member Default() = HashSet<'T>(16)
-
-        member this.Capacity = table.Length
-
-        member this.Add(item: 'T) =
-            if float size / float table.Length >= loadFactor then
-                resize ()
-
-            let rec tryInsert index =
-                match table.[index] with
-                | Some x when x = item -> () // Already present, do nothing
-                | None ->
-                    table.[index] <- Some item
-                    size <- size + 1
-                | _ -> tryInsert ((index + 1) % size)
-
-            let index = hashIndex item table.Length
-            tryInsert index
-
-        member this.Contains(item: 'T) =
-            let rec tryFind index =
-                match table.[index] with
-                | Some x when x = item -> true
-                | None -> false
-                | _ -> tryFind ((index + 1) % size)
-
-            let index = hashIndex item table.Length
-            tryFind index
-
-        member this.Remove(item: 'T) =
-            let rec tryRemove index =
-                match table.[index] with
-                | Some x when x = item ->
-                    table.[index] <- None
-                    size <- size - 1
-                | Some _ -> tryRemove ((index + 1) % size)
-                | None -> ()
-
-            let index = hashIndex item table.Length
-            tryRemove index
-
-        member this.Size = size
-
-
-
-        member this.Print() =
-            table |> Array.choose id |> Array.iter (fun x -> printf "%A " x)
-            printfn ""
-
-        member this.Iter(f: 'T -> unit) =
-            table
-            |> Array.iter (fun x ->
-                match x with
-                | None -> ()
-                | _ -> f x.Value)
-
-        member this.IterRev(f: 'T -> unit) =
-            table
-            |> Array.rev
-            |> Array.iter (fun x ->
-                match x with
-                | None -> ()
-                | _ -> f x.Value)
-
-        static member iter (f: 'T -> unit) (set: HashSet<'T>) = set.Iter(f)
-
-        static member map (f: 'T -> 'M) (set: HashSet<'T>) =
-            let newSet = HashSet<'M>(set.Capacity)
-            set.Iter(fun x -> newSet.Add(f x))
-            newSet
-
-        static member filter (f: 'T -> bool) (set: HashSet<'T>) =
-            let newSet = HashSet<'T>(set.Capacity)
-
-            set.Iter(fun x ->
-                if f x then
-                    newSet.Add(x))
-
-            newSet
-
-        static member foldl (f: 'M -> 'T -> 'M) (acc: 'M) (set: HashSet<'T>) =
-            let mutable mut_acc = acc
-            let nextAcc x = (mut_acc <- f mut_acc x)
-            set.Iter(nextAcc)
-            mut_acc
-
-        static member foldr (f: 'M -> 'T -> 'M) (acc: 'M) (set: HashSet<'T>) =
-            let mutable mut_acc = acc
-            let nextAcc x = (mut_acc <- f mut_acc x)
-            set.IterRev(nextAcc)
-            mut_acc
-        static member create (arr : list<'T>) =
-            let set = HashSet<'T>(arr.Length)
-            arr |> List.iter (fun x -> set.Add(x))
-            set
-
-        member this.Equals(obj : HashSet<'T>) =
-           let mutable check = true
-           obj |> HashSet.iter (fun x -> if not(this.Contains(x)) then check <- false)
-           this |> HashSet.iter (fun x -> if not(obj.Contains(x)) then check <- false)
-           check
-           
     let (@) (set1: HashSet<'T>) (set2: HashSet<'T>) =
-        let set3 = HashSet<'T>(set1.Capacity + set2.Capacity)
-        set1.Iter(fun (x) -> set3.Add(x))
-        set2.Iter(fun (x) -> set3.Add(x))
+        let mutable set3 = HashSet<'T>(set1.capacity + set2.capacity)
+        set1 |> iter (fun (x) -> set3 <- set3 |> add x)
+        set2 |> iter (fun (x) -> set3 <- set3 |> add x)
         set3
-        
-    
+
+    let filter (f: 'T -> bool) (set: HashSet<'T>) =
+        let table = Array.init set.capacity (fun _ -> None: 'T option)
+
+        let rec tryInsert index item =
+            match table[index] with
+            | Some x when x = item -> ()
+            | None -> table[index] <- Some item
+            | _ -> tryInsert ((index + 1) % set.capacity) item
+
+        set.table |> Array.filter Option.isSome |> Array.filter (fun x -> f x.Value)
+        |> Array.iter (fun x -> tryInsert (hashIndex  x.Value set.capacity) x.Value)
+        let newSize = table |> Array.filter Option.isSome |> Array.length
+        HashSet(table, newSize)

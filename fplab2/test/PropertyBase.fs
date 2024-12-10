@@ -7,9 +7,9 @@ open fplab2.HashSet
 
 let genSet (genValue: Gen<'Value>) : Gen<HashSet<'Value>> =
     gen {
-        let set = HashSet<'Value>.Default()
+        let mutable set = HashSet<'Value>.Default()
         let! arr = Gen.listOf(genValue)
-        arr |> List.iter (fun x -> set.Add(x))
+        arr |> List.iter (fun x -> set <- set |> add(x))
         return set
     }
 
@@ -23,10 +23,6 @@ type HashSetGenerators =
 Arb.register<HashSetGenerators>() |> ignore
 
 
-let copy (hashSet: HashSet<'Value>) : HashSet< 'Value> =
-    let emptySet = HashSet<'Value>.Default()
-    hashSet |> HashSet.iter (fun x -> emptySet.Add(x))
-    emptySet
 
 let pow (n : int) (set: HashSet<int>)  =
     let rec helper (set: HashSet<int>) (n) (ans: HashSet<int>) =
@@ -34,24 +30,24 @@ let pow (n : int) (set: HashSet<int>)  =
         | 0 -> ans
         | n -> helper set (n - 1) (ans @ set)
 
-    helper set n (HashSet<int>.Default())
+    helper set n (default_set<int>())
 
 [<Property(Arbitrary = [| typeof<HashSetGenerators> |])>]
-let ``нейтральный элемент`` (set: HashSet<int>) =
-    let mergeSet = set @ HashSet.Default()
-    mergeSet.Equals(set)
+let neutral(set: HashSet<int>) =
+    let mergeSet = set @ default_set<int>()
+    equal mergeSet set
     
 [<Property(Arbitrary = [| typeof<HashSetGenerators> |])>]
-let ``ассоциативность`` (set1 : HashSet<int>) (set2 : HashSet<int>) (set3 : HashSet<int>) =
+let association (set1 : HashSet<int>) (set2 : HashSet<int>) (set3 : HashSet<int>) =
     let merge1 = (set1 @ set2) @ set3
     let merge2 = set1 @ (set2 @ set3)
-    merge1.Equals(merge2)
+    equal merge1 merge2
 
 [<Property(Arbitrary = [| typeof<HashSetGenerators> |])>]
-let ``свойства степеней (сумма)`` (set : HashSet<int>) (n : int) (m : int) =
+let ``sum_degree`` (set : HashSet<int>) (n : int) (m : int) =
     (set |> pow  (n + m)) .Equals ((set |> pow  n) @ (set |> pow m))
 
 
 [<Property(Arbitrary = [| typeof<HashSetGenerators> |])>]
-let ``свойства степеней (степень степени`` (set : HashSet<int>) (n : int) (m : int) =
+let ``degree_of_degree`` (set : HashSet<int>) (n : int) (m : int) =
     (set |> pow (n * m)) .Equals (set |> pow n |> pow m)    
