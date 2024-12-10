@@ -23,7 +23,7 @@ module HashSet =
 
         let rec tryInsert index item =
             match table[index] with
-            | Some x when x = item -> () // Already present, do nothing
+            | Some x when x = item -> () 
             | None -> table[index] <- Some item
             | _ -> tryInsert ((index + 1) % newCapacity) item
 
@@ -36,7 +36,7 @@ module HashSet =
     let add (x: 'T) (hash_set: HashSet<'T>) =
         let rec tryInsert index item (set: HashSet<'T>) : HashSet<'T> =
             match set.table[index] with
-            | Some x when x = item -> set // Already present, do nothing
+            | Some x when x = item -> set 
             | None ->
                 set.table[index] <- Some item
                 HashSet(set.table, set.size + 1)
@@ -87,7 +87,7 @@ module HashSet =
 
         let rec tryInsert index item =
             match table[index] with
-            | Some x when x = item -> () // Already present, do nothing
+            | Some x when x = item -> () 
             | None -> table[index] <- Some item
             | _ -> tryInsert ((index + 1) % set.capacity) item
 
@@ -115,10 +115,16 @@ module HashSet =
         && set2 |> map (set1 |> contains) |> foldl (&&) true
 
     let (@) (set1: HashSet<'T>) (set2: HashSet<'T>) =
-        let mutable set3 = HashSet<'T>(set1.capacity + set2.capacity)
-        set1 |> iter (fun (x) -> set3 <- set3 |> add x)
-        set2 |> iter (fun (x) -> set3 <- set3 |> add x)
-        set3
+        let table = Array.init (set1.capacity + set2.capacity) (fun _ -> None: 'T option)
+        let rec tryInsert index item =
+            match table[index] with
+            | Some x when x = item -> () 
+            | None -> table[index] <- Some item
+            | _ -> tryInsert ((index + 1) % set1.capacity + set2.capacity) item
+        set1 |> iter (fun x -> tryInsert (hashIndex x (set1.capacity + set2.capacity)) x) 
+        set2 |> iter (fun x -> tryInsert (hashIndex x  (set1.capacity + set2.capacity)) x)
+        let newSize = table |> Array.filter Option.isSome |> Array.length
+        HashSet(table, newSize)
 
     let filter (f: 'T -> bool) (set: HashSet<'T>) =
         let table = Array.init set.capacity (fun _ -> None: 'T option)
