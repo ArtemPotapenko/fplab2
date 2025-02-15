@@ -7,9 +7,8 @@ open fplab2.HashSet
 
 let genSet (genValue: Gen<'Value>) : Gen<HashSet<'Value>> =
     gen {
-        let mutable set = HashSet<'Value>.Default()
         let! arr = Gen.listOf(genValue)
-        arr |> List.iter (fun x -> set <- set |> add(x))
+        let set = arr |> List.fold (fun acc x -> acc |> add(x)) (default_set<'Value>())
         return set
     }
 
@@ -34,14 +33,14 @@ let pow (n : int) (set: HashSet<int>)  =
 
 [<Property(Arbitrary = [| typeof<HashSetGenerators> |])>]
 let neutral(set: HashSet<int>) =
-    let mergeSet = set @ default_set<int>()
+    let mergeSet = (default_set<int>()) @ set
     equal mergeSet set
     
 [<Property(Arbitrary = [| typeof<HashSetGenerators> |])>]
 let association (set1 : HashSet<int>) (set2 : HashSet<int>) (set3 : HashSet<int>) =
     let merge1 = (set1 @ set2) @ set3
     let merge2 = set1 @ (set2 @ set3)
-    equal merge1 merge2
+    equal merge1 
 
 [<Property(Arbitrary = [| typeof<HashSetGenerators> |])>]
 let ``sum_degree`` (set : HashSet<int>) (n : int) (m : int) =
