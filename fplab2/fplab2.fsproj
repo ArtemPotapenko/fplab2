@@ -18,7 +18,7 @@
         <PackageReference Include="NUnit.Analyzers" Version="3.9.0"/>
         <PackageReference Include="NUnit3TestAdapter" Version="4.5.0"/>
         <PackageReference Include="FsCheck" Version="2.16.6"/>
-        <PackageReference Include="FsCheck.Xunit" Version="3.1.0"/>
+        <PackageReference Include="FsCheck.Xunit" Version="2.16.6"/>
     </ItemGroup>
 
 </Project>

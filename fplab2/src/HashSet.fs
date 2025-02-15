@@ -111,8 +111,8 @@ module HashSet =
 
 
     let equal (set1: HashSet<'T>) (set2: HashSet<'T>) =
-        set1 |> map (set2 |> contains) |> foldl (&&) true
-        && set2 |> map (set1 |> contains) |> foldl (&&) true
+        (set1 |> map (fun x -> contains x set2) |> foldl (&&) true)
+        && (set2 |> map (fun x -> contains x set1) |> foldl (&&) true)
 
     let (@) (set1: HashSet<'T>) (set2: HashSet<'T>) =
         let table = Array.init (set1.capacity + set2.capacity) (fun _ -> None: 'T option)
