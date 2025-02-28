@@ -28,7 +28,7 @@ jobs:
         run: fantomas fplab2/src/HashSet.fs
 
       - name: Format code with Fantomas (Test)
-        run: fantomas fplab2/test/Program.fs
+        run: fantomas fplab2/test/UnitTest.fs
         
       - name: Run test (HashSet)
         run: cd fplab2 && dotnet test
