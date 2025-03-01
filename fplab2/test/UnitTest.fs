@@ -49,14 +49,14 @@ let TestIter () =
 
     let set_sum = set |> foldl (+) 0
     Assert.AreEqual(set_sum, 25)
-
+[<Test>]
 let TestFold () =
     let set = default_set<int>() |> add 3 |> add 4 |> add 5 |> add 6 |> add 7
     let set_sum = set |> foldl (+) 0
     Assert.AreEqual(set_sum, 25)
     let set  = default_set<int>() |> add 5 |> add 4
     Assert.AreEqual(set |> foldr (*) 1, 20)
-
+[<Test>]
 let TestEqual () =
     let set = default_set<int>() |> add 5 |> add 4
     let set2 = default_set<int>() |> add 5 |> add 5 |> add 3
