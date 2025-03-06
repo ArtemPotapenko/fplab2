@@ -31,6 +31,6 @@ jobs:
         run: fantomas fplab2/test/UnitTest.fs
         
       - name: Run test (HashSet)
-        run: cd fplab2 && dotnet test
+        run: cd fplab2/test && dotnet test
 
     
