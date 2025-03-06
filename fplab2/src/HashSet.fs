@@ -23,7 +23,7 @@ module HashSet =
 
         let rec tryInsert index item =
             match table[index] with
-            | Some x when x = item -> () 
+            | Some x when x = item -> ()
             | None -> table[index] <- Some item
             | _ -> tryInsert ((index + 1) % newCapacity) item
 
@@ -36,7 +36,7 @@ module HashSet =
     let add (x: 'T) (hash_set: HashSet<'T>) =
         let rec tryInsert index item (set: HashSet<'T>) : HashSet<'T> =
             match set.table[index] with
-            | Some x when x = item -> set 
+            | Some x when x = item -> set
             | None ->
                 set.table[index] <- Some item
                 HashSet(set.table, set.size + 1)
@@ -87,11 +87,12 @@ module HashSet =
 
         let rec tryInsert index item =
             match table[index] with
-            | Some x when x = item -> () 
+            | Some x when x = item -> ()
             | None -> table[index] <- Some item
             | _ -> tryInsert ((index + 1) % set.capacity) item
 
-        set.table |> Array.filter Option.isSome
+        set.table
+        |> Array.filter Option.isSome
         |> Array.iter (fun x -> tryInsert (hashIndex (f x.Value) set.capacity) (f x.Value))
 
         let newSize = table |> Array.filter Option.isSome |> Array.length
@@ -116,13 +117,19 @@ module HashSet =
 
     let (@) (set1: HashSet<'T>) (set2: HashSet<'T>) =
         let table = Array.init (set1.capacity + set2.capacity) (fun _ -> None: 'T option)
+
         let rec tryInsert index item =
             match table[index] with
-            | Some x when x = item -> () 
+            | Some x when x = item -> ()
             | None -> table[index] <- Some item
-            | _ -> tryInsert ((index + 1) % set1.capacity + set2.capacity) item
-        set1 |> iter (fun x -> tryInsert (hashIndex x (set1.capacity + set2.capacity)) x) 
-        set2 |> iter (fun x -> tryInsert (hashIndex x  (set1.capacity + set2.capacity)) x)
+            | _ -> tryInsert ((index + 1) % (set1.capacity + set2.capacity)) item
+
+        set1
+        |> iter (fun x -> tryInsert (hashIndex x (set1.capacity + set2.capacity)) x)
+
+        set2
+        |> iter (fun x -> tryInsert (hashIndex x (set1.capacity + set2.capacity)) x)
+
         let newSize = table |> Array.filter Option.isSome |> Array.length
         HashSet(table, newSize)
 
@@ -135,7 +142,10 @@ module HashSet =
             | None -> table[index] <- Some item
             | _ -> tryInsert ((index + 1) % set.capacity) item
 
-        set.table |> Array.filter Option.isSome |> Array.filter (fun x -> f x.Value)
-        |> Array.iter (fun x -> tryInsert (hashIndex  x.Value set.capacity) x.Value)
+        set.table
+        |> Array.filter Option.isSome
+        |> Array.filter (fun x -> f x.Value)
+        |> Array.iter (fun x -> tryInsert (hashIndex x.Value set.capacity) x.Value)
+
         let newSize = table |> Array.filter Option.isSome |> Array.length
         HashSet(table, newSize)
