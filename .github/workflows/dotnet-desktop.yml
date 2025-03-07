@@ -29,6 +29,13 @@ jobs:
 
       - name: Format code with Fantomas (Test)
         run: fantomas fplab2/test/UnitTest.fs
+      - name: Lint
+        run: | 
+          dotnet tool install -g dotnet-fsharplint
+          dotnet fsharplint lint fplab2/src/HashSet.fs
+          
+               
+        
         
       - name: Run test (HashSet)
         run: cd fplab2/test && dotnet test

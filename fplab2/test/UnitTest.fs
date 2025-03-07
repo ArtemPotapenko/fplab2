@@ -64,5 +64,3 @@ let TestEqual () =
     let set2 = set2 |> add 4 |> remove 3
     Assert.True(set |> equal set2)
     Assert.Equal(set2.size, 2)
-
-
