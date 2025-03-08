@@ -41,13 +41,13 @@ let removeContainsTest (set: HashSet<int>) n =
     not (contains n set)
 
 [<Property(Arbitrary = [| typeof<HashSetGenerators> |])>]
-let addContainsTest (set: HashSet<int>) n =
+let addContainsProp (set: HashSet<int>) n =
     let set = set |> add n
     contains n set
 
 
 [<Property(Arbitrary = [| typeof<HashSetGenerators> |])>]
-let mapIncrementTest (set: HashSet<int>) =
+let mapIncrementProp (set: HashSet<int>) =
     let newSet = set |> map ((+) 1)
     (newSet |> foldr (+) 0) = (set |> foldr (+) 0) + set.size
 
@@ -57,3 +57,9 @@ let addAssociation (set: HashSet<int>) n m =
     let set1 = set |> add n |> add m
     let set2 = set |> add m |> add n
     equal set1 set2
+
+
+[<Property(Arbitrary = [| typeof<HashSetGenerators> |])>]
+let delContainsProp (set: HashSet<int>) n =
+    let set = set |> remove n
+    not (contains n set)
