@@ -15,7 +15,7 @@ let genSet (genValue: Gen<'Value>) : Gen<HashSet<'Value>> =
 let arbHashSet<'Value when 'Value: equality> () : Arbitrary<HashSet<'Value>> = Arb.fromGen (genSet Arb.generate)
 
 type HashSetGenerators =
-    static member HashSetArbitrary<'Value when 'Value: comparison>() : Arbitrary<HashSet<'Value>> = arbHashSet ()
+    static member HashSetArbitrary<'Value when 'Value: equality>() : Arbitrary<HashSet<'Value>> = arbHashSet ()
 
 Arb.register<HashSetGenerators> () |> ignore
 
